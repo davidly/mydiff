@@ -14,6 +14,7 @@ void usage( char * pcError = 0 )
     printf( "text file difference\n" );
     printf( "  usage: mydiff [-c:X] file1 file2\n" );
     printf( "  arguments:  -c:X   Number of differences before stopping, default is 10\n" );
+    printf( "              -n:X   Number of columns to validate, default is all\n" );
     exit( 1 );
 } //usage
 
@@ -22,6 +23,7 @@ int main( int argc, char * argv[] )
     char * pA = 0;
     char * pB = 0;
     long long count = 10;
+    size_t columns = 0;
 
     for ( int i = 1; i < argc; i++ )
     {
@@ -38,6 +40,13 @@ int main( int argc, char * argv[] )
                     count = _strtoui64( parg + 3 , 0, 10 );
                 else
                     usage( "colon required after c argument" );
+            }
+            else if ( 'n' == ca )
+            {
+                if ( ':' == parg[2] )
+                    columns = _strtoui64( parg + 3 , 0, 10 );
+                else
+                    usage( "colon required after n argument" );
             }
             else if ( '?' == ca )
                 usage();
@@ -96,7 +105,14 @@ int main( int argc, char * argv[] )
 
         lines++;
 
-        if ( strcmp( acA, acB ) )
+        bool different = false;
+
+        if ( 0 == columns )
+            different = strcmp( acA, acB );
+        else
+            different = strncmp( acA, acB, columns );
+
+        if ( different )
         {
             printf( "line %llu\n", lines );
             printf( "  a: %s", acA );
