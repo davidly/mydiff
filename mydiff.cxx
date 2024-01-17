@@ -1,3 +1,5 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +20,25 @@ void usage( char * pcError = 0 )
     exit( 1 );
 } //usage
 
+class CFile
+{
+    private:
+        FILE * fp;
+
+    public:
+        CFile( FILE * file ) : fp( file ) {}
+        ~CFile() { close(); }
+        FILE * get() { return fp; }
+        void close()
+        {
+            if ( NULL != fp )
+            {
+                fclose( fp );
+                fp = NULL;
+            }
+        }
+};
+
 int main( int argc, char * argv[] )
 {
     char * pA = 0;
@@ -32,7 +53,7 @@ int main( int argc, char * argv[] )
 
         if ( '-' == c || '/' == c )
         {
-            char ca = tolower( parg[1] );
+            char ca = (char) tolower( parg[1] );
 
             if ( 'c' == ca )
             {
@@ -71,12 +92,16 @@ int main( int argc, char * argv[] )
     if ( !fpA )
         usage( "can't open first file" );
 
+    CFile fileA( fpA );
+
     FILE * fpB = fopen( pB, "r" );
     if ( !fpB )
         usage( "can't open second file" );
 
-    static char acA[1000];
-    static char acB[1000];
+    CFile fileB( fpB );
+
+    static char acA[ 65536 ];
+    static char acB[ 65536 ];
     long long differences = 0;
     long long lines = 0;
     
@@ -126,9 +151,6 @@ int main( int argc, char * argv[] )
             }
         }
     } while( true );
-
-    fclose( fpB );
-    fclose( fpA );
 
     return 0;
 } //main
